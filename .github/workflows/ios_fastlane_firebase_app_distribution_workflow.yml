@@ -3,7 +3,7 @@ name: iOS Fastlane Firebase Distribution Workflow
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   distribute_to_firebase_ios:
