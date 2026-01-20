@@ -9,20 +9,28 @@ platform :ios do
 
     sh("flutter build ipa --release --no-codesign --export-method ad-hoc --no-tree-shake-icons")
 
-    sh <<-EOS
-    mkdir -p Payload
-    cp -R build/ios/iphoneos/Runner.app Payload/
-    zip -r Runner.ipa Payload
-    rm -rf Payload
-    EOS
+
+    sh(
+      "flutter build ipa " \
+      "--release " \
+      "--no-codesign " \
+      "--export-method ad-hoc " \
+      "--no-tree-shake-icons"
+    )
+    ipa_path = "build/ios/ipa/Runner.ipa"
+
+    unless File.exist?(ipa_path)
+      UI.user_error!("❌ IPA not found at #{ipa_path}")
+    end
 
     UI.success("IPA generated")
 
+    
         firebase_app_distribution(
           app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa", 
           testers: "alharbisa24@gmail.com",
           release_notes: "iOS build from GitHub Actions",
-          ipa_path: "build/ios/ipa/Runner.ipa",
+          ipa_path: ipa_path,
           firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"]
         )
       rescue => e
