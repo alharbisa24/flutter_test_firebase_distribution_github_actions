@@ -7,7 +7,7 @@ platform :ios do
 
     sh("flutter clean")
 
-    sh("flutter build ios --release --no-codesign --no-tree-shake-icons")
+    sh("flutter build ipa --release --no-codesign --export-method ad-hoc --no-tree-shake-icons")
 
     sh <<-EOS
     mkdir -p Payload
@@ -22,7 +22,7 @@ platform :ios do
           app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa", 
           testers: "alharbisa24@gmail.com",
           release_notes: "iOS build from GitHub Actions",
-          ipa_path: "Runner.ipa",
+          ipa_path: "build/ios/ipa/Runner.ipa",
           firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"]
         )
       rescue => e
