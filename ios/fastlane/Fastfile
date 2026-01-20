@@ -16,10 +16,8 @@ platform :ios do
       rm -rf Payload
     EOS
 
-    UI.success("✅ IPA generated at ../Runner.ipa")
+    UI.success("IPA generated")
 
-    if ENV["FIREBASE_CLI_TOKEN"]
-      begin
         firebase_app_distribution(
           app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa", 
           testers: "alharbisa24@gmail.com",
@@ -29,7 +27,5 @@ platform :ios do
         )
       rescue => e
         UI.error("⚠️ Firebase upload failed (expected for unsigned IPA): #{e.message}")
-      end
-    end
   end
 end
