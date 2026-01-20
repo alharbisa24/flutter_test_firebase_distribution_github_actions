@@ -1,13 +1,14 @@
-name: iOS Fastlane Firebase Distribution Workflow
+name: iOS Fastlane Firebase Distribution 
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   distribute_to_firebase_ios:
-    runs-on: macos-latest 
+    runs-on: macos-latest
 
     steps:
     - name: Checkout my repo code
@@ -19,8 +20,11 @@ jobs:
         flutter-version: '3.35.5'
         channel: stable
 
-    - name: Install dependencies
+    - name: Install Flutter dependencies
       run: flutter pub get
+
+    - name: Clean Flutter build
+      run: flutter clean
 
     - name: Setup Ruby for Fastlane
       uses: ruby/setup-ruby@v1
@@ -28,6 +32,12 @@ jobs:
         ruby-version: "3.2.3"
         bundler-cache: true
         working-directory: ios
+
+    - name: Install CocoaPods
+      run: |
+        sudo gem install cocoapods
+        cd ios
+        pod install --repo-update
 
     - name: Run Fastlane lane
       env:
