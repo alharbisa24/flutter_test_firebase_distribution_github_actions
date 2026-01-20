@@ -1,0 +1,35 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "lane: build iOS app without signing and optionally send to Firebase"
+  lane :firebase_distribution do
+    UI.message("🚀 Starting iOS build")
+
+    sh("flutter clean")
+
+    sh("flutter build ios --release --no-codesign")
+
+    sh <<-EOS
+      mkdir -p Payload
+      cp -R build/ios/iphoneos/Runner.app Payload/
+      zip -r ../Runner.ipa Payload
+      rm -rf Payload
+    EOS
+
+    UI.success("✅ IPA generated at ../Runner.ipa")
+
+    if ENV["FIREBASE_CLI_TOKEN"]
+      begin
+        firebase_app_distribution(
+          app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa", 
+          testers: "alharbisa24@gmail.com",
+          release_notes: "iOS build from GitHub Actions",
+          ipa_path: "../Runner.ipa",
+          firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"]
+        )
+      rescue => e
+        UI.error("⚠️ Firebase upload failed (expected for unsigned IPA): #{e.message}")
+      end
+    end
+  end
+end
