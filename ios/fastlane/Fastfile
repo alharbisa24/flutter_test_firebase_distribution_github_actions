@@ -1,36 +1,54 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Build iOS IPA and upload to Firebase App Distribution"
+  desc "Build iOS IPA manually from Runner.app and upload to Firebase"
   lane :firebase_distribution do
-    UI.message("🚀 Starting iOS build")
+    
+ 
+    project_root = File.expand_path("../../", Dir.pwd)
+    app_path = "#{project_root}/build/ios/iphoneos/Runner.app"
+    ipa_output_dir = "#{project_root}/build/ios/ipa"
+    ipa_path = "#{ipa_output_dir}/Runner.ipa"
+    payload_dir = "#{ipa_output_dir}/Payload"
 
-    sh("flutter clean")
-    sh("flutter pub get")
+    UI.message("🚀 Starting Build Process...")
+    UI.message("Project Root: #{project_root}")
 
-    sh(
-      "flutter build ipa " \
-      "--release " \
-      "--no-codesign " \
-      "--export-method ad-hoc " \
-      "--no-tree-shake-icons"
-    )
+    sh("cd #{project_root} && flutter clean")
+    sh("cd #{project_root} && flutter pub get")
+    sh("cd #{project_root} && flutter build ios --release --no-codesign")
 
-    ipa_files = Dir["build/ios/ipa/*.ipa"]
-
-    if ipa_files.empty?
-      UI.user_error!("❌ No IPA file found in build/ios/ipa/")
+    unless Dir.exist?(app_path)
+      UI.user_error!("❌ Runner.app not found at #{app_path}. Make sure flutter build succeeded.")
     end
 
-    ipa_path = ipa_files.first
-    UI.success("✅ IPA found: #{ipa_path}")
+    UI.message("Creating IPA...")
+    
+    sh("mkdir -p #{payload_dir}")
+    sh("rm -rf #{ipa_path}") 
 
+    sh("cp -R #{app_path} #{payload_dir}")
+
+    sh("cd #{ipa_output_dir} && zip -ry Runner.ipa Payload")
+
+    sh("rm -rf #{payload_dir}")
+
+    if File.exist?(ipa_path)
+      UI.success("✅ IPA created successfully at: #{ipa_path}")
+    else
+      UI.user_error!("❌ Failed to create IPA file.")
+    end
+
+    UI.message("☁️ Uploading to Firebase App Distribution...")
+    
     firebase_app_distribution(
       app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa",
       testers: "alharbisa24@gmail.com",
-      release_notes: "iOS build from GitHub Actions",
+      release_notes: "iOS build generated via Fastlane (Fixed Path & Structure)",
       ipa_path: ipa_path,
       firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"]
     )
+
+    UI.success("Process completed successfully!")
   end
 end

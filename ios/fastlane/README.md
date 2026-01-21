@@ -21,7 +21,7 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane ios firebase_distribution
 ```
 
-lane: build iOS app without signing and optionally send to Firebase
+Build iOS IPA manually from Runner.app and upload to Firebase
 
 ----
 
