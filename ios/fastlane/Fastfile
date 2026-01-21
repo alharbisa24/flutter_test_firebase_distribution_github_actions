@@ -1,14 +1,12 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "lane: build iOS app without signing and optionally send to Firebase"
+  desc "Build iOS IPA and upload to Firebase App Distribution"
   lane :firebase_distribution do
     UI.message("🚀 Starting iOS build")
 
     sh("flutter clean")
-
-    sh("flutter build ipa --release --no-codesign --export-method ad-hoc --no-tree-shake-icons")
-
+    sh("flutter pub get")
 
     sh(
       "flutter build ipa " \
@@ -17,23 +15,22 @@ platform :ios do
       "--export-method ad-hoc " \
       "--no-tree-shake-icons"
     )
-    ipa_path = "build/ios/ipa/Runner.ipa"
 
-    unless File.exist?(ipa_path)
-      UI.user_error!("❌ IPA not found at #{ipa_path}")
+    ipa_files = Dir["build/ios/ipa/*.ipa"]
+
+    if ipa_files.empty?
+      UI.user_error!("❌ No IPA file found in build/ios/ipa/")
     end
 
-    UI.success("IPA generated")
+    ipa_path = ipa_files.first
+    UI.success("✅ IPA found: #{ipa_path}")
 
-    
-        firebase_app_distribution(
-          app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa", 
-          testers: "alharbisa24@gmail.com",
-          release_notes: "iOS build from GitHub Actions",
-          ipa_path: ipa_path,
-          firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"]
-        )
-      rescue => e
-        UI.error("⚠️ Firebase upload failed (expected for unsigned IPA): #{e.message}")
+    firebase_app_distribution(
+      app: "1:937001601167:ios:005384c7dc9eeda9d8c8fa",
+      testers: "alharbisa24@gmail.com",
+      release_notes: "iOS build from GitHub Actions",
+      ipa_path: ipa_path,
+      firebase_cli_token: ENV["FIREBASE_CLI_TOKEN"]
+    )
   end
 end
